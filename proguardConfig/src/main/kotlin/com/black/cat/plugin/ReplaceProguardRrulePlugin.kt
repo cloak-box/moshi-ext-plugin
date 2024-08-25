@@ -5,6 +5,8 @@ import com.android.build.api.variant.Variant
 import com.android.build.gradle.internal.tasks.R8Task
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.execution.TaskExecutionAdapter
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ValueState
 import java.io.File
@@ -19,30 +21,27 @@ class ReplaceProguardRrulePlugin : Plugin<Project> {
             val taskName = "minify${variant.name.replaceFirstChar { it.uppercaseChar() }}WithR8"
             generatedProguardFilesTasks.add(taskName)
         }
-        project.afterEvaluate {
-            generatedProguardFilesTasks.forEach { taskName ->
-                val task = project.tasks.findByName(taskName) as R8Task?
-                if (task != null) {
-                    println(task.javaClass.name)
-                    task.doFirst {
-                        val addProguardFiles = mutableListOf<File>()
-                        val filterFiles = task.configurationFiles.filter { file ->
-                            val result = findTargetProguardFile(
-                                project.proguardExtension.proguardConfig.get(), file.absolutePath
-                            )
-                            if (result != null) {
-                                addProguardFiles.add(File(result.second))
-                            }
-                            return@filter result == null
-                        }.plus(addProguardFiles)
-                        val host = Reflect.on(task.configurationFiles).field("host").get<Any>() as PropertyHost
-                        Reflect.on(task.configurationFiles).set("valueState", ValueState.newState<Any>(host))
-                        task.configurationFiles.setFrom(filterFiles)
-                        task.configurationFiles.disallowChanges()
-                    }
+
+        project.gradle.addListener(object : TaskExecutionAdapter() {
+            override fun beforeExecute(task: Task) {
+                if (task is R8Task && generatedProguardFilesTasks.contains(task.name)) {
+                    val addProguardFiles = mutableListOf<File>()
+                    val filterFiles = task.configurationFiles.filter { file ->
+                        val result = findTargetProguardFile(
+                            project.proguardExtension.proguardConfig.get(), file.absolutePath
+                        )
+                        if (result != null) {
+                            addProguardFiles.add(File(result.second))
+                        }
+                        return@filter result == null
+                    }.plus(addProguardFiles)
+                    val host = Reflect.on(task.configurationFiles).field("host").get<Any>() as PropertyHost
+                    Reflect.on(task.configurationFiles).set("valueState", ValueState.newState<Any>(host))
+                    task.configurationFiles.setFrom(filterFiles)
+                    task.configurationFiles.disallowChanges()
                 }
             }
-        }
+        })
     }
 
     private fun findTargetProguardFile(

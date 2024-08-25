@@ -3,7 +3,7 @@ plugins {
 }
 buildscript{
     dependencies{
-        classpath("io.github.cloak-box.moshi:plugin:1.0.0.1-SNAPSHOT")
+        classpath("io.github.cloak-box.plugin:maven-api-plugin:1.0.0.2")
     }
     repositories{
         mavenLocal()

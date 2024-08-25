@@ -2,6 +2,7 @@
 kotlinpoet-ksp-version = "1.17.0"
 ksp-symbol-processing-version= "2.0.0-1.0.22"
 moshi-version = "1.15.1"
+publish-lib-version ="1.0.0.1"
 [libraries]
 com-google-devtools-ksp-symbol-processing-api={ module="com.google.devtools.ksp:symbol-processing-api",version.ref="ksp-symbol-processing-version"}
 com-google-devtools-ksp-symbol-processing-gradle-plugin = {module ="com.google.devtools.ksp:symbol-processing-gradle-plugin",version.ref="ksp-symbol-processing-version"}

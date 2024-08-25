@@ -1,4 +1,4 @@
-package com.black.cat.plugin
+package com.black.cat.ksp
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
